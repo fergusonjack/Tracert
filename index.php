@@ -1,56 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 
-    <?php
-        $title = "Tracert plotter";
-    ?>
+    <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
 
-    <title><?php echo $title; ?></title>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel="stylesheet" href="css/mainJack.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
 
-<nav class="navbar navbar-default">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="#"><?php echo $title; ?></a>
-        </div>
-        <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-        </ul>
+<div class="form-group required">
+    <div class="col-sm-4 buttonwrapper">
+        <input type="text" class="form-control" id="input" name="IP" value='0.0.0.0' />
+        <button class="ButtonGO">GO</button>
     </div>
-</nav>
-
-<div>
-
-    <div class="jumbotron" id="padder">
-        <h1><?php
-            ini_set('max_execution_time', 300);
-            exec("java -jar target/Tracert-0.0.1-SNAPSHOT-jar-with-dependencies.jar google.com", $output);
-            ?></h1>
-        <h1><?php foreach ($output as $result) {
-                echo $result;
-                echo "<br>";
-            }  ?></h1>
-    </div>
-
 </div>
 
 
-<div class="container">
-    <div class="center">&copy <?php echo date("Y"); ?> Jack Ferguson</div>
-</div>
+<script>
+    var map;
+    var flightPath;
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 3,
+            center: {lat: 0, lng: -180},
+            mapTypeId: 'terrain'
+        });
 
+        var flightPlanCoordinates = [
+            {lat: 37.772, lng: -122.214},
+            {lat: 21.291, lng: -157.821},
+            {lat: -18.142, lng: 178.431},
+            {lat: -27.467, lng: 153.027}
+        ];
+
+        //flightPlanCoordinates.push({lat: 51.5033640, lng: -0.1276250});
+
+        flightPath = new google.maps.Polyline({
+            path: flightPlanCoordinates,
+            geodesic: true,
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 2
+        });
+
+        flightPath.setMap(map);
+    }
+</script>
+
+
+<script>
+
+    $(".ButtonGO").click(function () {
+        getCoords($("#input").val());
+    })
+
+
+    function getCoords(address) {
+        $.get({
+            url: "getPos.php",
+            data: { info: address }
+        })
+            .done(function( msg ) {
+                console.log(msg);
+                //need to add parsing for this and a for loop to add on the coords
+                var thePath = flightPath.getPath();
+                thePath.push(new google.maps.LatLng(51.5033640, -0.1276250));
+                flightPath.setPath(thePath);
+            });
+    }
+
+
+</script>
+
+
+<div id="map"></div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9N5kTBPalmXtPSfvZKKiiyIdJ2sNH2d4&callback=initMap"
+        async defer></script>
 </body>
-
-<script src="js/mainJack.js"></script>
-
 </html>
