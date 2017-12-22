@@ -30,6 +30,7 @@
     <div class="col-sm-4 buttonwrapper">
         <input type="text" class="form-control" id="input" name="IP" value='0.0.0.0' />
         <button class="ButtonGO">GO</button>
+        <p class="loading"></p>
     </div>
 </div>
 
@@ -45,10 +46,6 @@
         });
 
         var flightPlanCoordinates = [
-            {lat: 37.772, lng: -122.214},
-            {lat: 21.291, lng: -157.821},
-            {lat: -18.142, lng: 178.431},
-            {lat: -27.467, lng: 153.027}
         ];
 
         //flightPlanCoordinates.push({lat: 51.5033640, lng: -0.1276250});
@@ -68,21 +65,48 @@
 
 <script>
 
+    var load = true;
+
+    function loading(){
+        if (load){
+            if ($(".loading").text() === "Loading"){
+                $(".loading").html("Loading.");
+            } else if ($(".loading").text() === "Loading."){
+                $(".loading").html("Loading..");
+            } else if ($(".loading").text() === "Loading.."){
+                $(".loading").html("Loading...");
+            } else {
+                $(".loading").html("Loading");
+            }
+        }
+        setTimeout(function(){ loading() }, 1000);
+    }
+
     $(".ButtonGO").click(function () {
         getCoords($("#input").val());
-    })
+    });
 
 
     function getCoords(address) {
+        $(".loading").html("Loading");
+        load = true;
+        loading();
         $.get({
             url: "getPos.php",
             data: { info: address }
         })
             .done(function( msg ) {
+                load = false;
+                $(".loading").html("");
                 console.log(msg);
-                //need to add parsing for this and a for loop to add on the coords
-                var thePath = flightPath.getPath();
-                thePath.push(new google.maps.LatLng(51.5033640, -0.1276250));
+                var thePath = [];
+
+                var arr = msg.split(":");
+                console.log(arr);
+                for (i = 0; i < arr.length; i++){
+                    thePath.push(new google.maps.LatLng(arr[i].split(",")[0], arr[i].split(",")[1]));
+                }
+
                 flightPath.setPath(thePath);
             });
     }

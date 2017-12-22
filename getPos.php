@@ -1,9 +1,12 @@
 <?php
+
+$safe = false;
+
 $valid = filter_var($_GET["info"], FILTER_VALIDATE_IP);
 
-if ($valid){
+if ($valid || !$safe){
     set_time_limit ( 300 );
-    exec("java -jar target/Tracert-0.0.1-SNAPSHOT-jar-with-dependencies.jar google.com", $output);
+    exec("java -jar target/Tracert-0.0.1-SNAPSHOT-jar-with-dependencies.jar " . $_GET["info"], $output);
 
     $returnString = "";
 
